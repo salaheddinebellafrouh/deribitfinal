@@ -7,10 +7,10 @@ endif
 # Compiler and linker flags
 CXX = c++
 CXXFLAGS = -O2 -std=c++17 -I./nlohmann/single_include -I./websocketpp -pthread -DBOOST_ASIO_NO_DEPRECATED -DASIO_STANDALONE -Wall
-LDFLAGS = -pthread -lcurl -lboost_system -lssl -lcrypto  # Link with OpenSSL libraries here
+LDFLAGS = -pthread -lcurl -lboost_system -lssl -lcrypto  
 
 # Source files
-SRC = main.cpp deribit.cpp  # Explicitly include main.cpp and other source files
+SRC = main.cpp deribit.cpp  
 OBJ = $(SRC:.cpp=.o)
 EXEC = deribit_trader
 

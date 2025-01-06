@@ -24,7 +24,7 @@ RUN git clone --depth 1 https://github.com/nlohmann/json.git /app/nlohmann && \
 
 # Copy the project files into the container
 COPY ./src /app
-COPY .env /app/.env
+# COPY .env /app/.env
 
 # Expose any necessary ports (e.g., for a WebSocket server)
 EXPOSE 8080

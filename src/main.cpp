@@ -1,23 +1,16 @@
-#include <iostream>
-#include <string>
-#include <curl/curl.h>
-#include "./json/single_include/nlohmann/json.hpp"
-#include <sstream>
+
 #include"deribit.hpp"
-// Callback function for handling the response
 size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
     ((std::string *)userp)->append((char *)contents, size * nmemb);
     return size * nmemb;
 }
 
-// Function to get the access token
 void getPositions(const std::string& access_token) {
     CURL* curl;
     CURLcode res;
     std::string response_string;
 
-    // Prompt user for currency and kind
     std::string currency;
     std::cout << "Enter Currency: ";
     std::cin >> currency;
@@ -25,41 +18,32 @@ void getPositions(const std::string& access_token) {
     std::cout << "Enter kind (future, spot, ...): ";
     std::cin >> kind;
 
-    // Construct the URL with query parameters
+    
     std::ostringstream url_stream;
     url_stream << "https://test.deribit.com/api/v2/private/get_positions"
                << "?currency=" << currency
                << "&kind=" << kind;
     std::string url = url_stream.str();
 
-    // Initialize CURL
     curl = curl_easy_init();
     if (curl) {
-        // Set URL
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-
-        // Set headers
         struct curl_slist* headers = nullptr;
         std::string auth_header = "Authorization: Bearer " + access_token;
         headers = curl_slist_append(headers, auth_header.c_str());
         headers = curl_slist_append(headers, "Content-Type: application/json");
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-
-        // Set up the response handling
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
 
-        // Perform the request
         res = curl_easy_perform(curl);
 
         if (res != CURLE_OK) {
             std::cerr << "CURL request failed: " << curl_easy_strerror(res) << std::endl;
         } else {
             try {
-                // Parse the JSON response
                 auto json_response = nlohmann::json::parse(response_string);
 
-                // Check if "result" exists and display it
                 if (json_response.contains("result")) {
                     std::cout << "Result: " << json_response["result"].dump(4) << std::endl;
                     std::cerr << std::endl;
@@ -72,7 +56,7 @@ void getPositions(const std::string& access_token) {
             }
         }
 
-        // Clean up
+        
         curl_slist_free_all(headers);
         curl_easy_cleanup(curl);
     } else {
@@ -96,19 +80,16 @@ void getOpenOrders(const std::string &access_token)
     std::string auth_header = "Authorization: Bearer " + access_token;
     const std::string content_type_header = "Content-Type: application/json";
 
-    // Add headers
     struct curl_slist *headers = nullptr;
     headers = curl_slist_append(headers, auth_header.c_str());
     headers = curl_slist_append(headers, content_type_header.c_str());
 
-    // Set CURL options
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
     std::string response_data;
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_data);
 
-    // Perform the request
     CURLcode res = curl_easy_perform(curl);
     if (res != CURLE_OK)
     {
@@ -118,12 +99,10 @@ void getOpenOrders(const std::string &access_token)
     {
         try
         {
-            // Parse the JSON response
             nlohmann::json json_response = nlohmann::json::parse(response_data);
 
-            // Pretty print the JSON response
             std::cout << "Formatted Server Response:\n"
-                      << json_response.dump(4) // 4 spaces for indentation
+                      << json_response.dump(4)
                       << std::endl;
             std::cout << std::endl;
         }
@@ -134,7 +113,6 @@ void getOpenOrders(const std::string &access_token)
         }
     }
 
-    // Cleanup
     curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
 }
@@ -158,13 +136,11 @@ void cancelOrderGet(const std::string &bearer_token)
         headers = curl_slist_append(headers, auth_header.c_str());
         headers = curl_slist_append(headers, content_type_header.c_str());
 
-        // Set URL
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 
-        // Add headers
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
-        // Perform the request
+
         res = curl_easy_perform(curl);
 
         if (res != CURLE_OK)
@@ -176,7 +152,7 @@ void cancelOrderGet(const std::string &bearer_token)
             std::cout << "Order cancellation request sent successfully." << std::endl;
         }
 
-        // Clean up
+        
         curl_easy_cleanup(curl);
         curl_slist_free_all(headers);
     }
@@ -186,13 +162,12 @@ void cancelOrderGet(const std::string &bearer_token)
     }
 }
 
-// Function to get the access token
 void editOrder(const std::string& access_token) {
     CURL* curl;
     CURLcode res;
     std::string response_string;
 
-    // Prompt user for new price and amount
+    
     double price, amount;
     std::string order_id;
     std::cout << "Enter Order Id: ";
@@ -202,7 +177,7 @@ void editOrder(const std::string& access_token) {
     std::cout << "Enter the new amount: ";
     std::cin >> amount;
 
-    // Construct the URL with query parameters
+    
     std::ostringstream url_stream;
     url_stream << "https://test.deribit.com/api/v2/private/edit"
            << "?amount=" << amount
@@ -210,34 +185,26 @@ void editOrder(const std::string& access_token) {
            << "&price=" << price;
     std::string url = url_stream.str();
 
-    // Initialize CURL
     curl = curl_easy_init();
     if (curl) {
-        // Set URL
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-
-        // Set headers
         struct curl_slist* headers = nullptr;
         std::string auth_header = "Authorization: Bearer " + access_token;
         headers = curl_slist_append(headers, auth_header.c_str());
         headers = curl_slist_append(headers, "Content-Type: application/json");
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-
-        // Set up the response handling
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
 
-        // Perform the request
+
         res = curl_easy_perform(curl);
 
     if (res != CURLE_OK) {
             std::cerr << "CURL request failed: " << curl_easy_strerror(res) << std::endl;
         } else {
             try {
-                // Parse the JSON response
                 auto json_response = nlohmann::json::parse(response_string);
 
-                // Check if "result" exists and display it
                 if (json_response.contains("result")) {
                     std::cout << "Result: " << json_response["result"].dump(4) << std::endl;
                     std::cerr << std::endl;
@@ -249,7 +216,7 @@ void editOrder(const std::string& access_token) {
             }
         }
 
-        // Clean up
+        
         curl_slist_free_all(headers);
         curl_easy_cleanup(curl);
     } else {
@@ -257,22 +224,26 @@ void editOrder(const std::string& access_token) {
     }
 }
 
-std::string getAccessToken()
+std::string getAccessToken(std::string &client_id, std::string &client_secret)
 {
     CURL *curl;
     CURLcode res;
     std::string response_string;
-    std::string post_data = R"({
+    
+    std::ostringstream json_stream;
+    json_stream << R"({
         "jsonrpc": "2.0",
         "method": "public/auth",
         "params": {
             "grant_type": "client_credentials",
             "scope": "session:apiconsole-5kq5ea8upw2 expires:2592000",
-            "client_id": "3lLxSV83",
-            "client_secret": "VRadKIoIikig5W8jflfQPbH05yRzwXBI9QIZZmqY0w4"
+            "client_id": ")" << client_id << R"(",
+            "client_secret": ")" << client_secret << R"("
         },
         "id": 0
     })";
+    
+    std::string post_data = json_stream.str();
 
     curl_global_init(CURL_GLOBAL_DEFAULT);
     curl = curl_easy_init();
@@ -298,7 +269,6 @@ std::string getAccessToken()
     return response_string;
 }
 
-// Function to place an order
 void placeOrder(const std::string &access_token)
 {
     CURL *curl;
@@ -306,7 +276,6 @@ void placeOrder(const std::string &access_token)
     std::string response_string;
     std::string url;
 
-    // Get order details from the user
     std::string instrument;
     double quantity, price, amount;
     std::string side, order_type;
@@ -324,14 +293,13 @@ void placeOrder(const std::string &access_token)
     std::cout << "Enter order type (limit/market): ";
     std::cin >> order_type;
 
-    // Decide the correct endpoint based on the side (buy/sell)
     if (side == "buy")
     {
-        url = "https://test.deribit.com/api/v2/private/buy"; // Buy order endpoint
+        url = "https://test.deribit.com/api/v2/private/buy"; 
     }
     else if (side == "sell")
     {
-        url = "https://test.deribit.com/api/v2/private/sell"; // Sell order endpoint
+        url = "https://test.deribit.com/api/v2/private/sell";
     }
     else
     {
@@ -339,7 +307,6 @@ void placeOrder(const std::string &access_token)
         return;
     }
 
-    // Prepare the JSON body for the order using nlohmann::json
     nlohmann::json root;
     root["jsonrpc"] = "2.0";
     root["method"] = (side == "buy") ? "private/buy" : "private/sell";
@@ -350,8 +317,7 @@ void placeOrder(const std::string &access_token)
     root["params"]["type"] = order_type;
     root["params"]["access_token"] = access_token;
 
-    std::string requestBody = root.dump(); // Serializing the JSON object to string
-
+    std::string requestBody = root.dump(); 
     curl_global_init(CURL_GLOBAL_DEFAULT);
     curl = curl_easy_init();
 
@@ -373,10 +339,8 @@ void placeOrder(const std::string &access_token)
             std::cerr << "CURL request failed: " << curl_easy_strerror(res) << std::endl;
         } else {
             try {
-                // Parse the JSON response
                 auto json_response = nlohmann::json::parse(response_string);
 
-                // Check if "result" exists and display it
                 if (json_response.contains("result")) {
                     std::cout << "Result: " << json_response["result"].dump(4) << std::endl;
                     std::cerr << std::endl;
@@ -396,18 +360,21 @@ void placeOrder(const std::string &access_token)
 
 int main()
 {
-    // Retrieve access token from the API
-    std::string response = getAccessToken();
+    std::string client_id, secret_id;
 
-    // Parse the JSON response with nlohmann::json
+            std::cout << "Enter Secret ID: ";
+            std::cin >> secret_id;
+            std::cout << "Enter Client ID: ";
+            std::cin >> client_id;
+
+    std::string response = getAccessToken(client_id, secret_id);
+
     try
     {
         nlohmann::json responseJson = nlohmann::json::parse(response);
         std::string access_token = responseJson["result"]["access_token"];
 
-        // std::cout << "Access Token: " << access_token << std::endl;
 
-        // Display menu and let user choose to place an order
         while (true)
         {
             std::cout << "\nMenu:\n";
@@ -424,8 +391,8 @@ int main()
             std::cin >> choice;
             if (std::cin.fail())
             {
-                std::cin.clear();                                                   // Clear error flags
-                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Discard invalid input
+                std::cin.clear();                                                   
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); 
                 std::cout << "Invalid input. Please enter a number between 1 and 5.\n";
                 continue;
             }
